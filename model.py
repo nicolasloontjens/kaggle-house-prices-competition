@@ -12,7 +12,8 @@ pd.set_option('display.max_colwidth', -1)
 
 training_dataset = pd.read_csv("./train.csv")
 test_dataset = pd.read_csv("./test.csv")
-data = pd.concat([training_dataset.drop('SalePrice',axis=1),test_dataset],keys=['train','test'])
+data = training_dataset
+#pd.concat([training_dataset.drop('SalePrice',axis=1),test_dataset],keys=['train','test'])
 data.drop('Id',axis=1, inplace=True)
 
 """
@@ -95,3 +96,51 @@ print("Final columns null values:")
 print(data.isnull().sum())
 sns.heatmap(data.isnull(),yticklabels=False,cbar=False)
 plt.show()
+
+
+##next up, analysing the data and checking which values would be influencing the saleprice a lot
+sns.set(rc={'figure.figsize':(12,8)})
+sns.heatmap(data.corr(),vmin=0.5,square=True, linewidths=0.05, linecolor='white')
+plt.show()
+## with this heatmap, you can see that SalePrice is heavily influenced by:
+#OverallQual
+#GrLivArea
+#
+#and a bit by:
+#TotalBsmtSF
+#1stFlrSF
+#and garagecars and area
+
+##so with this we looked up how to make a more detailed heatmap and created this one:
+top15cols = data.corr().nlargest(15,'SalePrice')['SalePrice'].index
+top15corr = np.corrcoef(data[top15cols].values.T)
+sns.heatmap(top15corr,yticklabels=top15cols.values,xticklabels=top15cols.values, annot=True, cbar=False)
+plt.show()
+##and here we can see the top 15 columns ranked by correlation
+
+##first up we will look at the OverallQual
+sns.boxplot(x=data['OverallQual'],y=data['SalePrice'])
+plt.show()
+
+##and this confirms that the overall quality definitely increases prices of the house
+##next up, the GrLivArea:
+
+plt.scatter(data['GrLivArea'],data['SalePrice'])
+plt.xlabel("Above ground living area sqfeet")
+plt.ylabel("Pricing")
+plt.show()
+
+##looking at this graph, we can see that it has a linear relationship and affects the SalePrice quite a bit
+##now we will look at the basement sqfeet if there could also be a linear relationship
+
+plt.scatter(data['TotalBsmtSF'],data['SalePrice'])
+plt.xlabel("Basement area sqfeet")
+plt.ylabel("Pricing")
+plt.show()
+
+##and on this graph we can see houses without a basement, and also houses with a basement
+##we can see a linear relationship here, but it is way steeper than the living area 
+
+##add garagecars/saleprice and garagearea/saleprice
+
+
