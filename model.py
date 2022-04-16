@@ -2,6 +2,16 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
+from sklearn.linear_model import LinearRegression
+from sklearn.model_selection import train_test_split
+from sklearn.model_selection import cross_val_score
+from sklearn.linear_model import Ridge
+from sklearn.linear_model import Lasso
+from sklearn.pipeline import make_pipeline
+from sklearn.preprocessing import StandardScaler
+from sklearn.linear_model import ElasticNet
+from sklearn.metrics import mean_squared_error
+from sklearn.model_selection import GridSearchCV
 ##some configuration so that we can view everything in the console
 pd.set_option('display.max_rows', None)
 pd.set_option('display.max_columns', None)
@@ -144,3 +154,40 @@ plt.show()
 ##add garagecars/saleprice and garagearea/saleprice
 
 
+
+
+##next up, we will split the features:
+# we want to split the features containing sqfeet, prices, etc
+# and the features with data containing "Excelllent, good, etc."
+# we will then convert the 2nd list of features to a numerical scale since this will be better for our model
+print(data.columns.tolist())
+
+numericalfeatures = ['LotFrontage', 'LotArea', 'OverallQual', 'OverallCond', 
+             'YearBuilt', 'YearRemodAdd', 'MasVnrArea', 'ExterQual', 'ExterCond', 
+             'BsmtQual', 'BsmtCond', 'BsmtFinSF1', 'BsmtFinSF2', 'BsmtUnfSF', 'TotalBsmtSF', 'HeatingQC', '1stFlrSF', 
+             '2ndFlrSF', 'LowQualFinSF','GrLivArea', 'BsmtFullBath', 'BsmtHalfBath', 'FullBath', 'HalfBath',
+             'BedroomAbvGr', 'KitchenAbvGr', 'KitchenQual', 'TotRmsAbvGrd',
+             'Fireplaces', 'GarageCars', 'GarageArea', 'GarageQual', 'GarageCond',
+             'WoodDeckSF', 'OpenPorchSF', 'EnclosedPorch', '3SsnPorch',
+             'ScreenPorch', 'PoolArea', 'MiscVal',
+             'YrSold']
+
+gradingfeatures = ['OverallQual','OverallCond','GarageCond','GarageQual','ExterQual','ExterCond','BsmtQual','BsmtCond','HeatingQC','KitchenQual']  
+
+textgrades = ['Ex','Gd','TA','Fa','Po']
+numericalgrading = [9,7,5,3,1]
+gradingdictionary = dict(zip(textgrades,numericalgrading))
+
+data[gradingfeatures] = data[gradingfeatures].replace(gradingdictionary)
+
+##next up we will select our categorical features, which are the opposite of the numerical ones, so we can turn them into dummy variables
+categoricalfeatures = data.drop(numericalfeatures, axis=1).columns
+
+
+dummies = pd.get_dummies(data[categoricalfeatures])
+data.drop(categoricalfeatures,axis=1,inplace=True)
+data = data.join(dummies)
+
+
+
+##and now we will fit the data to the model, starting with LinearRegression
